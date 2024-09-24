@@ -1,0 +1,405 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% load shop_tags %}
+
+{% block main %}
+
+<!-- Shop Details Section Begin -->
+<section class="shop-details">
+    <div class="product__details__pic">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="product__details__breadcrumb">
+                        <a href="{% url 'index' %}">Home</a>
+                        <a href="{% url 'shop' %}">Shop</a>
+                        <span>Product Details</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-3 col-md-3">
+                    <ul class="nav nav-tabs" role="tablist">
+                        {% for image in product.images.all %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if forloop.first %}active{% endif %}" data-toggle="tab"
+                               href="#tabs-{{ forloop.counter }}" role="tab">
+                                <div class="product__thumb__pic set-bg" data-setbg="{{ image.image.url }}">
+                                </div>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="col-lg-6 col-md-9">
+                    <div class="tab-content">
+                        {% for image in product.images.all %}
+                        <div class="tab-pane {% if forloop.first %}active{% endif %}" id="tabs-{{ forloop.counter }}"
+                             role="tabpanel">
+                            <div class="product__details__pic__item">
+                                <img src="{{ image.image.url }}" alt="">
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="product__details__content">
+        <div class="container">
+            <div class="row d-flex justify-content-center">
+                <div class="col-lg-8">
+                    <div class="product__details__text">
+                        <h4>{{ product.title }}</h4>
+
+                        <div class="rating">
+                            <i class="fa fa-star" data-value="1"></i>
+                            <span> - {{ rating }}</span>
+                        </div>
+                        {% if product.discount > 0 %}
+                        <h3>${{ product.get_discount_price }}
+                            <span>{{ product.price }}</span>
+                        </h3>
+                        {% else %}
+                        <h3>${{ product.get_discount_price }}</h3>
+                        {% endif %}
+                        <p>{{ product.information }}</p>
+                        <form action="{% url 'to_cart' product.pk %}" method="post">
+                            {% csrf_token %}
+                            <div class="product__details__option">
+                                <div class="product__details__option__size">
+                                    <span>Size:</span>
+                                    {% for size in form.size.field.queryset %}
+                                    <label>
+                                        {{ size.size.title }}
+                                        <input type="radio" name="size" value="{{ size.id }}" required>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                                <div class="product__details__option__color">
+                                    <span>Color:</span>
+                                    {% for color in form.color.field.queryset %}
+                                    <label>
+                                        {{ color.color.title }}
+                                        <input type="radio" name="color" value="{{ color.id }}" required>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+
+                            </div>
+                            <div class="product__details__cart__option">
+                                {% if product.in_stock <= 0 %}
+                                <p>out of stock</p>
+                                {% else %}
+                                <p>{{ product.in_stock }} products in stock</p>
+                                <div>
+                                    <input type="number" name="quantity" id="quantity" min="0" value="0"
+                                           max="{{ product.in_stock }}">
+                                </div>
+                                <button type="submit" class="primary-btn">Add to cart</button>
+
+                                {% endif %}
+
+
+                            </div>
+                        </form>
+
+
+                        <div class="product__details__btns__option">
+                            {% if request.user.is_authenticated %}
+                            {% check_wishlist request product.pk as wish %}
+
+                            <a href="{% url 'wishlist_action' product.pk %}">
+                                {% if wish %}
+                                <img src="{% static 'img/icon/heart_filled.png' %}" alt="">
+                                {% else %}
+                                <img src="{% static 'img/icon/heart.png' %}" alt=""> add to wishlist
+                                {% endif %}
+                            </a>
+
+                            {% endif %}
+                            <a href="#"><i class="fa fa-exchange"></i> Add To Compare</a>
+                        </div>
+                        <div class="product__details__last__option">
+                            <h5><span>Guaranteed Safe Checkout</span></h5>
+                            <img src="{% static 'img/shop-details/details-payment.png' %}" alt="">
+                            <ul>
+                                <li><span>SKU:</span> {{ product.sku }}</li>
+                                <li><span>Categories:</span> {{ product.category }}</li>
+                                <li><span>Tag:</span> {{ product.tag }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="product__details__tab">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-toggle="tab" href="#tabs-5"
+                                   role="tab">Description</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-toggle="tab" href="#tabs-6" role="tab">Customer
+                                    Previews({{ count_reviews }})</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="tabs-5" role="tabpanel">
+                                <div class="product__details__tab__content">
+                                    <p class="note">{{ product.description }}</p>
+                                    <div class="product__details__tab__content__item">
+                                        <h5>Products Infomation</h5>
+                                        <p>{{ product.information }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="tabs-6" role="tabpanel">
+                                <div class="product__details__tab__content">
+                                    <div class="product__details__tab__content__item">
+                                        <h5>Products Reviews</h5>
+                                        {% if request.user.is_authenticated %}
+
+
+                                        <form method="post" enctype="multipart/form-data">
+                                            {% csrf_token %}
+                                            {{ review_form.non_field_errors }}
+                                            <div class="rating">
+                                                {% for radio in review_form.rating %}
+                                                <label for="{{ radio.id_for_label }}" class="rating-star">
+                                                    {{ radio.tag }}
+                                                    <i class="fa fa-star{% if radio.value == form.rating.value %} filled{% endif %}"></i>
+                                                </label>
+                                                {% endfor %}
+                                            </div>
+                                            {{ review_form.text.errors }}
+                                            {{ review_form.text }}
+                                            {{ review_form.image.errors }}
+                                            {{ review_form.image }}
+                                            <div class="d-flex justify-content-between mt-3">
+                                                <button type="reset" class="btn btn-danger">Clear</button>
+                                                <button type="submit" class="btn btn-success">
+                                                    Send <i class="fas fa-long-arrow-alt-right ms-1"></i>
+                                                </button>
+                                            </div>
+                                        </form>
+                                        {% else %}
+                                        <h2>Log in to leave a review</h2>
+                                        {% endif %}
+
+                                        <div class="mt-4">
+                                            <h2>Reviews</h2>
+                                            {% for review in reviews %}
+                                            <div class="review">
+                                                <h5>{{ review.user.username }}</h5>
+                                                <div class="rating">
+                                                    {% for i in 1|to_5 %}
+                                                    <i class="fa fa-star{% if i <= review.rating %} filled{% endif %}"></i>
+                                                    {% endfor %}
+                                                </div>
+                                                <p>{{ review.text }}</p>
+                                                {% if review.image %}
+                                                <img src="{{ review.image.url }}" alt="Review image"
+                                                     style="max-width: 100px;">
+                                                {% endif %}
+                                                <small>{{ review.created_at }}</small>
+                                            </div>
+                                            {% empty %}
+                                            <p>No reviews yet.</p>
+                                            {% endfor %}
+                                        </div>
+
+
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', function () {
+                                                const ratingStars = document.querySelectorAll('.rating-star i');
+                                                let currentRating = 0;
+
+                                                ratingStars.forEach(star => {
+                                                    star.addEventListener('click', function () {
+                                                        currentRating = this.getAttribute('data-value');
+                                                        updateStars();
+                                                    });
+                                                });
+
+                                                function updateStars() {
+                                                    ratingStars.forEach(star => {
+                                                        if (star.getAttribute('data-value') <= currentRating) {
+                                                            star.classList.add('filled');
+                                                        } else {
+                                                            star.classList.remove('filled');
+                                                        }
+                                                    });
+                                                }
+                                            });
+
+
+                                             document.addEventListener('DOMContentLoaded', function() {
+        // Для выбора размеров
+        const sizeItems = document.querySelectorAll('.size-item a');
+        const hiddenSizeInput = document.querySelector('input[name="size"]');
+
+        if (hiddenSizeInput) {
+            sizeItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Убираем активное состояние с предыдущих размеров
+                    sizeItems.forEach(a => a.classList.remove('active'));
+
+                    // Добавляем активное состояние для текущего размера
+                    this.classList.add('active');
+
+                    // Устанавливаем значение в скрытое поле для размера
+                    hiddenSizeInput.value = this.closest('li').getAttribute('data-value');
+                });
+            });
+        } else {
+            console.error("Поле для выбора размера не найдено.");
+        }
+
+        // Для выбора цветов
+        const colorItems = document.querySelectorAll('.color-item a');
+        const hiddenColorInput = document.querySelector('input[name="color"]');
+
+        if (hiddenColorInput) {
+            colorItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Убираем активное состояние с предыдущих цветов
+                    colorItems.forEach(a => a.classList.remove('active'));
+
+                    // Добавляем активное состояние для текущего цвета
+                    this.classList.add('active');
+
+                    // Устанавливаем значение в скрытое поле для цвета
+                    hiddenColorInput.value = this.closest('li').getAttribute('data-value');
+                });
+            });
+        } else {
+            console.error("Поле для выбора цвета не найдено.");
+        }
+    });
+
+document.addEventListener('DOMContentLoaded', function () {
+    const quantityInput = document.getElementById('quantity');
+    const stockNumber = document.querySelector('.stock-number em');
+    const stockLimit = parseInt(quantityInput.getAttribute('data-stock')); // Доступное количество на складе
+
+    // Уменьшить количество
+    document.querySelector('.quantity-left-minus').addEventListener('click', function (e) {
+        e.preventDefault();
+        let currentValue = parseInt(quantityInput.value);
+        if (currentValue > 1) {
+            quantityInput.value = currentValue - 1;
+            updateStockNumber(stockLimit - quantityInput.value);
+        }
+    });
+
+    // Увеличить количество
+    document.querySelector('.quantity-right-plus').addEventListener('click', function (e) {
+        e.preventDefault();
+        let currentValue = parseInt(quantityInput.value);
+        if (currentValue < stockLimit) {
+            quantityInput.value = currentValue + 1;
+            updateStockNumber(stockLimit - quantityInput.value);
+        }
+    });
+
+    // Функция для обновления текста "in stock"
+    function updateStockNumber(remainingStock) {
+        stockNumber.textContent = `${remainingStock} in stock`;
+    }
+
+    // Инициализация
+    updateStockNumber(stockLimit - quantityInput.value);
+});
+                                        </script>
+
+                                        <style>
+                                            .rating {
+                                                display: inline-flex;
+                                                align-items: center;
+                                            }
+                                            .rating-star {
+                                                cursor: pointer;
+                                            }
+                                            .rating i {
+                                                color: #ccc; /* Gray color for default */
+                                                font-size: 14px; /* Adjust font size as needed */
+                                                margin-right: 5px; /* Space between stars */
+                                            }
+                                            .rating i.filled {
+                                                color: #f39c12; /* Gold color for filled stars */
+                                            }
+                                        </style>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Shop Details Section End -->
+
+<!-- Related Section Begin -->
+<section class="related spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <h3 class="related-title">Related Product</h3>
+            </div>
+        </div>
+        <div class="row">
+            {% for i in related_products|slice:"3" %}
+            <div class="col-lg-4 col-md-6 col-sm-6">
+                <div class="product__item sale">
+                    <div class="product__item__pic set-bg" data-setbg="{{ i.get_first_image }}">
+                        {% if i.discount > 0 %}
+                        <span class="label">{{ i.discount }}%</span>
+                        {% else %}
+                        {% endif %}
+                        <ul class="product__hover">
+                            <li><a href="#"><img src="{% static 'img/icon/heart.png' %}" alt=""></a></li>
+                            <li><a href="#"><img src="{% static 'img/icon/compare.png' %}" alt=""> <span>Compare</span></a>
+                            </li>
+                            <li><a href="#"><img src="{% static 'img/icon/search.png' %}" alt=""></a></li>
+                        </ul>
+                    </div>
+                    <div class="product__item__text">
+                        <h6>{{ i.title }}</h6>
+                        <a href="{% url 'product' i.slug %}" class="add-cart">Quick View</a>
+                        <h5>${{ i.get_discount_price }}</h5>
+                        <div class="product__color__select">
+                            <label for="pc-7">
+                                <input type="radio" id="pc-7">
+                            </label>
+                            <label class="active black" for="pc-8">
+                                <input type="radio" id="pc-8">
+                            </label>
+                            <label class="grey" for="pc-9">
+                                <input type="radio" id="pc-9">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p>No related products found.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+<!-- Related Section End -->
+
+{% endblock main %}

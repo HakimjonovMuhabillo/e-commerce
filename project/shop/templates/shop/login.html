@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+
+{% block main %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <form action="{% url 'login' %}" method="post">
+                {% csrf_token %}
+                <fieldset>
+                    <legend class="text-center mb-4">Log In</legend>
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label" for="username">Username</label>
+                        <input type="text" id="username" name="username" class="form-control" placeholder="">
+
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="password">Password</label>
+                        <input type="password" id="password" name="password" class="form-control" placeholder="">
+
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-success">Log in</button>
+                        <p>You do not have an account? <a href="{% url 'register' %}" style="color: blue">register</a>
+                        </p>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock main %}

@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load shop_tags %}
+
+
+{% block main %}
+<!-- Breadcrumb Section Begin -->
+<section class="breadcrumb-option">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb__text">
+                    <h4>Shop</h4>
+                    <div class="breadcrumb__links">
+                        <a href="{% url 'index' %}">Home</a>
+                        <span>Shop</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Breadcrumb Section End -->
+
+<!-- Shop Section Begin -->
+<section class="shop spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="shop__sidebar">
+                    <div class="shop__sidebar__search">
+                        <form action="{% url 'search' %}">
+                            <input type="text" name="q" placeholder="Search...">
+                            <button type="submit"><span class="icon_search"></span></button>
+                        </form>
+                    </div>
+                    <div class="shop__sidebar__accordion">
+                        <div class="accordion" id="accordionExample">
+                            <div class="card">
+                                <div class="card-heading">
+                                    <a data-toggle="collapse" data-target="#collapseOne">Categories</a>
+                                </div>
+                                <div id="collapseOne" class="collapse show" data-parent="#accordionExample">
+                                    <div class="card-body">
+                                        <div class="shop__sidebar__categories">
+                                            <ul class="nice-scroll">
+                                                {% get_categories as categories %}
+                                                <li><a href="{% url 'shop' %}">All</a></li>
+                                                {% for category in categories %}
+                                                <li>
+                                                    <a href="?{% query_transform request 'category' category.id %}">{{ category.title }}</a>
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-heading">
+                                    <a data-toggle="collapse" data-target="#collapseTwo">Branding</a>
+                                </div>
+                                <div id="collapseTwo" class="collapse show" data-parent="#accordionExample">
+                                    <div class="card-body">
+                                        <div class="shop__sidebar__brand">
+                                            <ul>
+                                                {% get_brands as brands %}
+
+                                                {% for brand in brands %}
+                                                <li><a href="?{% query_transform request 'brand' brand.id %}">{{ brand.title }}</a></li>
+                                                {% endfor %}
+
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-heading">
+                                    <a data-toggle="collapse" data-target="#collapseThree">Filter Price</a>
+                                </div>
+                                <div id="collapseThree" class="collapse show" data-parent="#accordionExample">
+                                    <div class="card-body">
+                                        <div class="shop__sidebar__price">
+                                            <ul>
+                                                <li><a href="?{% query_transform request 'price' '0_50' %}">$0.00 -
+                                                    $50.00</a></li>
+                                                <li><a href="?{% query_transform request 'price' '50_100' %}">$50.00 -
+                                                    $100.00</a></li>
+                                                <li><a href="?{% query_transform request 'price' '100_150' %}">$100.00 -
+                                                    $150.00</a></li>
+                                                <li><a href="?{% query_transform request 'price' '150_200' %}">$150.00 -
+                                                    $200.00</a></li>
+                                                <li><a href="?{% query_transform request 'price' '200_250' %}">$200.00 -
+                                                    $250.00</a></li>
+                                                <li><a href="?{% query_transform request 'price' 'more_than_250' %}">More
+                                                    than
+                                                    $250.00</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-heading">
+                                    <a data-toggle="collapse" data-target="#collapseSix">Tags</a>
+                                </div>
+                                <div id="collapseSix" class="collapse show" data-parent="#accordionExample">
+                                    <div class="card-body">
+                                        <div class="shop__sidebar__tags">
+                                            {% get_tags as tags %}
+                                            {% for tag in tags %}
+                                            <a href="?{% query_transform request 'tag' tag.id %}">{{ tag.title }}</a>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-9">
+                <div class="shop__product__option">
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6">
+                            <div class="shop__product__option__left">
+
+                                <p>Showing 1–{{ products.paginator.count }} of {{ product_count }} results</p>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row">
+                    {% for product in products|slice:"9" %}
+                    <div class="col-lg-4 col-md-6 col-sm-6">
+                        <div class="product__item sale">
+                            <div class="product__item__pic set-bg" data-setbg="{{ product.get_first_image }}">
+                                {% if product.discount > 0 %}
+                                <span class="label">{{ product.discount }}%</span>
+                                {% else %}
+
+                                {% endif %}
+                                <ul class="product__hover">
+                                    <li>
+                                        {% if request.user.is_authenticated %}
+                                        {% check_wishlist request product.pk as wish %}
+
+                                        <a href="{% url 'wishlist_action' product.pk %}">
+                                            {% if wish %}
+                                            <img src="{% static 'img/icon/heart_filled.png' %}" alt="">
+                                            {% else %}
+                                            <img src="{% static 'img/icon/heart.png' %}" alt="">
+                                            {% endif %}
+                                        </a>
+
+                                        {% endif %}
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="product__item__text">
+                                <h6>{{ product.title }}</h6>
+                                <a href="{% url 'product' product.slug %}" class="add-cart">Quick View</a>
+                                <h5>${{ product.get_discount_price }}</h5>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="product__pagination">
+                            {% for page in products.paginator.page_range %}
+                            {% if products.number == page %}
+                            <a class="active" href="#">{{ page }}</a>
+                            {% else %}
+                            <a href="?{% query_transform request 'page' page %}">{{ page }}</a>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Shop Section End -->
+
+{% endblock main %}
